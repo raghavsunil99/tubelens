@@ -54,7 +54,13 @@ export default async function OutliersPage({ searchParams }: { searchParams: SP 
               className="group"
             >
               <div className="relative">
-                <Thumb src={v.video_thumbnail} seed={v.video_id} label={duration(v.video_duration)} />
+                <Thumb
+                  src={v.video_thumbnail}
+                  seed={v.video_id}
+                  label={duration(v.video_duration)}
+                  title={v.video_title}
+                  niche={v.main_category}
+                />
                 <span className="absolute top-1.5 left-1.5 rounded-md bg-warn px-2 py-0.5 text-xs font-bold text-black">
                   {v.outlier_score}x
                 </span>

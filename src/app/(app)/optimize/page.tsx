@@ -44,7 +44,13 @@ export default async function OptimizePage() {
               className="flex items-center gap-4 border-b border-line/60 p-4 last:border-0 hover:bg-panel-2"
             >
               <div className="w-28 shrink-0 sm:w-36">
-                <Thumb src={v.thumbnail} seed={v.id} label={v.videoType === "short" ? "Short" : undefined} />
+                <Thumb
+                  src={v.thumbnail}
+                  seed={v.id}
+                  label={v.videoType === "short" ? "Short" : undefined}
+                  title={v.title}
+                  niche="Tech"
+                />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="line-clamp-2 text-sm font-medium">{v.title}</div>

@@ -29,18 +29,56 @@ export function SourceBadge({ source }: { source: "youtube" | "mock" }) {
   );
 }
 
-/** Thumbnail with a generated gradient fallback when there's no image URL. */
-export function Thumb({ src, seed, label }: { src?: string; seed: string; label?: string }) {
+const NICHE_EMOJI: Record<string, string> = {
+  Tech: "📱",
+  "Personal Finance": "💰",
+  Cooking: "🍛",
+  Gaming: "🎮",
+  Education: "🔭",
+  Fitness: "💪",
+};
+
+/** Short, punchy thumbnail text from a video title: first 4 words, upper-case. */
+function thumbText(title: string) {
+  return title.replace(/[()]/g, "").split(/\s+/).slice(0, 4).join(" ").toUpperCase();
+}
+
+/**
+ * Thumbnail. Without an image URL it draws thumbnail-style placeholder art
+ * (gradient, emoji, bold headline) from the title and niche.
+ */
+export function Thumb({
+  src,
+  seed,
+  label,
+  title,
+  niche,
+}: {
+  src?: string;
+  seed: string;
+  label?: string;
+  title?: string;
+  niche?: string;
+}) {
   let h = 0;
   for (const c of seed) h = (h * 31 + c.charCodeAt(0)) % 360;
   return (
     <div
-      className="relative aspect-video w-full overflow-hidden rounded-lg"
-      style={{ background: `linear-gradient(135deg, hsl(${h} 60% 35%), hsl(${(h + 60) % 360} 70% 20%))` }}
+      className="@container relative aspect-video w-full overflow-hidden rounded-lg"
+      style={{ background: `linear-gradient(135deg, hsl(${h} 70% 45%), hsl(${(h + 50) % 360} 75% 22%))` }}
     >
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt="" className="h-full w-full object-cover" />
+      ) : title ? (
+        <div className="absolute inset-0 flex items-center gap-[4cqw] p-[6cqw]">
+          <span className="text-[22cqw] leading-none drop-shadow-lg" aria-hidden>
+            {NICHE_EMOJI[niche ?? ""] ?? "🎬"}
+          </span>
+          <span className="text-[8.5cqw] leading-[1.05] font-black tracking-tight text-white [text-shadow:0_2px_8px_rgb(0_0_0/0.45)]">
+            {thumbText(title)}
+          </span>
+        </div>
       ) : null}
       {label && (
         <span className="absolute right-1.5 bottom-1.5 rounded bg-black/75 px-1.5 py-0.5 font-mono text-[11px] text-white">

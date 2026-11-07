@@ -25,39 +25,6 @@ function rng(seed: number) {
   };
 }
 
-const NICHES = [
-  { niche: "Tech", sub: "Smartphones" },
-  { niche: "Personal Finance", sub: "Investing" },
-  { niche: "Cooking", sub: "Indian Recipes" },
-  { niche: "Gaming", sub: "Minecraft" },
-  { niche: "Education", sub: "Science Explainers" },
-  { niche: "Fitness", sub: "Home Workouts" },
-];
-
-const TITLE_TEMPLATES = [
-  "I Tried {x} for 30 Days (Shocking Results)",
-  "Why Nobody Talks About {x}",
-  "{x} Explained in 10 Minutes",
-  "The Truth About {x} in 2026",
-  "Stop Doing This With {x}",
-  "I Ranked Every {x}",
-  "Beginner's Guide to {x}",
-  "{x}: What They Don't Tell You",
-];
-
-const TOPICS = [
-  "Budget Phones",
-  "Index Funds",
-  "Biryani",
-  "Redstone Builds",
-  "Black Holes",
-  "Calisthenics",
-  "AI Tools",
-  "Side Hustles",
-  "Meal Prep",
-  "Speedruns",
-];
-
 export function mockChannelStats(channelId = DEMO_CHANNEL_ID): ChannelStats {
   return {
     channelId,
@@ -103,7 +70,7 @@ export function mockFeed(channelId = DEMO_CHANNEL_ID): FeedCard[] {
       status: "new",
       cardData: {
         title: "A competitor video is breaking out",
-        body: "“Why Nobody Talks About AI Tools” is at 11.2x its channel average after 4 days.",
+        body: "“5 ChatGPT Tricks 99% of People Don't Know” is at 11.2x its channel average after 4 days.",
         metric: { label: "Outlier score", value: "11.2x" },
       },
       llmData: null,
@@ -181,60 +148,100 @@ export function mockFeed(channelId = DEMO_CHANNEL_ID): FeedCard[] {
   ];
 }
 
-export function mockOutliers(count = 36): VideoOutlier[] {
+// Curated demo outliers: titles and channels that belong together.
+const DEMO_OUTLIERS: { title: string; channel: string; niche: string; short?: boolean }[] = [
+  { title: "I Tested 9 Budget Phones So You Don't Have To", channel: "Phone Lab", niche: "Tech" },
+  { title: "5 ChatGPT Tricks 99% of People Don't Know", channel: "AI Simplified", niche: "Tech" },
+  { title: "Why Your SIP Isn't Making Money", channel: "Money Matters", niche: "Personal Finance" },
+  { title: "Hyderabadi Biryani in 30 Minutes", channel: "Spice Route Kitchen", niche: "Cooking" },
+  { title: "This Phone Camera Beat a ₹1 Lakh DSLR", channel: "Phone Lab", niche: "Tech", short: true },
+  { title: "I Survived 100 Days in Hardcore Minecraft", channel: "BlockCraft", niche: "Gaming" },
+  { title: "What Happens Inside a Black Hole?", channel: "Cosmos Explained", niche: "Education" },
+  { title: "20-Minute Home Workout, No Equipment", channel: "FitAtHome", niche: "Fitness" },
+  { title: "₹10,000 to ₹1 Lakh: My Honest Plan", channel: "Money Matters", niche: "Personal Finance" },
+  { title: "The AI Tool That Replaced My Editor", channel: "Creator Stack", niche: "Tech" },
+  { title: "Street Food Tour: Old Delhi at Midnight", channel: "Spice Route Kitchen", niche: "Cooking" },
+  { title: "Speedrunning Minecraft With One Hand", channel: "BlockCraft", niche: "Gaming", short: true },
+  { title: "Laptop Under ₹50,000? Watch This First", channel: "Gadget Guru", niche: "Tech" },
+  { title: "Why Is the Sky Blue? (In 60 Seconds)", channel: "Cosmos Explained", niche: "Education", short: true },
+  { title: "I Did 100 Push-Ups Every Day for 30 Days", channel: "FitAtHome", niche: "Fitness" },
+  { title: "Index Funds Explained in 8 Minutes", channel: "Money Matters", niche: "Personal Finance" },
+  { title: "iPhone vs Android: My Honest Switch Story", channel: "Gadget Guru", niche: "Tech" },
+  { title: "One-Pot Meal Prep for the Whole Week", channel: "Spice Route Kitchen", niche: "Cooking" },
+  { title: "Building a Working Calculator in Redstone", channel: "BlockCraft", niche: "Gaming" },
+  { title: "The Side Hustle Nobody Talks About", channel: "Creator Stack", niche: "Personal Finance" },
+  { title: "Earth From the Moon: Real Footage Explained", channel: "Cosmos Explained", niche: "Education" },
+  { title: "Fix Your Posture in 5 Minutes a Day", channel: "FitAtHome", niche: "Fitness", short: true },
+  { title: "Unboxing the Cheapest 5G Phone in India", channel: "Phone Lab", niche: "Tech", short: true },
+  { title: "How I Edit YouTube Videos 3x Faster", channel: "Creator Stack", niche: "Tech" },
+];
+
+export function mockOutliers(): VideoOutlier[] {
   const r = rng(42);
-  const out: VideoOutlier[] = [];
-  for (let i = 0; i < count; i++) {
-    const n = NICHES[Math.floor(r() * NICHES.length)];
-    const topic = TOPICS[Math.floor(r() * TOPICS.length)];
-    const title = TITLE_TEMPLATES[Math.floor(r() * TITLE_TEMPLATES.length)].replace("{x}", topic);
-    const subs = Math.floor(2_000 + r() * 900_000);
-    const avg = Math.max(500, Math.floor(subs * (0.05 + r() * 0.3)));
-    const score = 1 + r() * r() * 25;
+  const channelSubs = new Map<string, number>();
+  const out = DEMO_OUTLIERS.map((d, i) => {
+    if (!channelSubs.has(d.channel)) channelSubs.set(d.channel, Math.floor(20_000 + r() * 900_000));
+    const subs = channelSubs.get(d.channel)!;
+    const avg = Math.max(800, Math.floor(subs * (0.08 + r() * 0.25)));
+    const score = 2 + r() * r() * 22;
     const views = Math.floor(avg * score);
-    out.push({
+    return {
       video_id: `vid_outlier_${i}`,
-      video_title: title,
-      video_published_at: Math.floor(Date.now() / 1000 - r() * 60 * 86400),
-      video_duration: r() < 0.3 ? Math.floor(15 + r() * 45) : Math.floor(240 + r() * 1500),
+      video_title: d.title,
+      video_published_at: Math.floor(Date.now() / 1000 - (2 + r() * 50) * 86400),
+      video_duration: d.short ? Math.floor(20 + r() * 40) : Math.floor(360 + r() * 1200),
       video_thumbnail: "",
       channel_id: `UCmock${i.toString().padStart(4, "0")}`,
-      channel_title: `${n.sub} ${["Lab", "Daily", "Guru", "Hub", "TV"][i % 5]}`,
-      channel_country: ["IN", "US", "GB", "CA"][Math.floor(r() * 4)],
-      channel_language: r() < 0.7 ? "en" : "hi",
+      channel_title: d.channel,
+      channel_country: "IN",
+      channel_language: "en",
       subscriber_count: subs,
-      main_category: n.niche,
+      main_category: d.niche,
       view_count: views,
       avg_views: avg,
       outlier_score: Math.round((views / avg) * 10) / 10,
-    });
-  }
+    };
+  });
   return out.sort((a, b) => b.outlier_score - a.outlier_score);
 }
 
+const DEMO_CHANNELS: { title: string; handle: string; niche: string; faceless?: boolean; podcast?: boolean }[] = [
+  { title: "Phone Lab", handle: "@phonelab", niche: "Tech" },
+  { title: "Money Matters", handle: "@moneymatters", niche: "Personal Finance" },
+  { title: "Spice Route Kitchen", handle: "@spiceroute", niche: "Cooking" },
+  { title: "BlockCraft", handle: "@blockcraft", niche: "Gaming", faceless: true },
+  { title: "Cosmos Explained", handle: "@cosmosexplained", niche: "Education", faceless: true },
+  { title: "FitAtHome", handle: "@fitathome", niche: "Fitness" },
+  { title: "AI Simplified", handle: "@aisimplified", niche: "Tech", faceless: true },
+  { title: "The Creator Talk", handle: "@creatortalk", niche: "Education", podcast: true },
+  { title: "Gadget Guru", handle: "@gadgetguru", niche: "Tech" },
+  { title: "Creator Stack", handle: "@creatorstack", niche: "Tech" },
+  { title: "Desi Money Podcast", handle: "@desimoney", niche: "Personal Finance", podcast: true },
+  { title: "Street Eats India", handle: "@streeteats", niche: "Cooking" },
+];
+
 export function mockChannelSearch(): ChannelSearchResult[] {
   const r = rng(7);
-  return Array.from({ length: 18 }, (_, i) => {
-    const n = NICHES[i % NICHES.length];
-    const subs = Math.floor(5_000 + r() * 2_000_000);
-    const videos = Math.floor(20 + r() * 800);
-    const avgViews = Math.floor(subs * (0.03 + r() * 0.4));
+  return DEMO_CHANNELS.map((c, i) => {
+    const subs = Math.floor(15_000 + r() * 1_800_000);
+    const videos = Math.floor(40 + r() * 600);
+    const avgViews = Math.floor(subs * (0.05 + r() * 0.3));
     return {
       channelId: `UCsearch${i.toString().padStart(4, "0")}`,
-      channelTitle: `${n.sub} ${["Simplified", "With Ravi", "Pro", "Insider", "Corner", "Nation"][i % 6]}`,
-      handle: `@${n.sub.toLowerCase().replace(/\s+/g, "")}${i}`,
-      niche: n.niche,
-      nicheConfidence: Math.round((0.6 + r() * 0.4) * 100) / 100,
-      mainCategory: n.niche,
-      country: ["IN", "US", "GB"][i % 3],
-      languages: r() < 0.7 ? "en" : "hi",
+      channelTitle: c.title,
+      handle: c.handle,
+      niche: c.niche,
+      nicheConfidence: Math.round((0.7 + r() * 0.3) * 100) / 100,
+      mainCategory: c.niche,
+      country: "IN",
+      languages: "en",
       subscriberCount: subs,
       viewCount: avgViews * videos,
       videoCount: videos,
       avgViews,
       estimatedEarnings: Math.floor(avgViews * videos * 0.0015),
-      isFaceless: r() < 0.35,
-      isPodcast: r() < 0.15,
+      isFaceless: c.faceless ?? false,
+      isPodcast: c.podcast ?? false,
     };
   });
 }
@@ -284,11 +291,24 @@ export function mockCompetitors(): Competitor[] {
   }));
 }
 
+const DEMO_UPLOADS = [
+  "The Phone I'd Buy With My Own Money in 2026",
+  "Budget Phones Ranked: Every Model Under ₹15k",
+  "My Honest Review After 30 Days",
+  "Top 5 Earbuds Under ₹2,000",
+  "Don't Buy a Smartwatch Before Watching This",
+  "This ₹999 Gadget Surprised Me",
+  "Phone Camera Settings Nobody Uses",
+  "Battery Test: 5 Phones, 1 Day",
+  "Is 5G Worth It Yet?",
+  "Unboxing: The Tiniest Projector",
+];
+
 export function mockOptimizeVideos(): OptimizeVideo[] {
   const r = rng(5);
-  return Array.from({ length: 10 }, (_, i) => ({
+  return DEMO_UPLOADS.map((title, i) => ({
     id: `vid_own_${i}`,
-    title: TITLE_TEMPLATES[i % TITLE_TEMPLATES.length].replace("{x}", TOPICS[(i * 3) % TOPICS.length]),
+    title,
     thumbnail: "",
     publishedAt: new Date(Date.now() - i * 5 * 86400_000).toISOString(),
     viewCount: Math.floor(800 + r() * 40_000),
