@@ -1,5 +1,4 @@
-// Domain types. Field names follow the response shapes recorded in
-// ../vidiq-recon.md (section 5.3) so the UI can later point at a real backend.
+// Domain types shared by the data layer, API routes and pages.
 
 export type CardType =
   | "video_idea"

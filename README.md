@@ -1,6 +1,6 @@
 # TubeLens
 
-A YouTube growth toolkit modelled on the feature set mapped in [`../vidiq-recon.md`](../vidiq-recon.md).
+An open-source YouTube growth toolkit: a channel feed, outlier finder, channel research, keyword ideas, competitors, video optimization and an AI coach. It's an independent project inspired by tools like vidIQ, with no affiliation to them.
 
 ## Run it
 
@@ -45,12 +45,12 @@ The coach uses `gemini-3.5-flash-lite` by default; set `GEMINI_MODEL=gemini-3.8-
 
 ```
 src/
-  lib/types.ts      Domain types (field names follow the recon's response shapes)
+  lib/types.ts      Domain types
   lib/mock-data.ts  Seeded demo data
   lib/youtube.ts    YouTube Data API v3 client (server-only)
   lib/data.ts       Data layer: live YouTube first, demo fallback
   app/(app)/*       Pages (server components) + sidebar layout
-  app/api/*         JSON routes mirroring the recon's endpoint families:
+  app/api/*         JSON routes:
                     creators/feed, youtube/video-outliers, channels/search,
                     xwords/keyword_trends, pyapi/auto_competitors,
                     yt/optimize-videos, quota/balance/global, ai-coach/*
