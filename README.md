@@ -184,39 +184,47 @@ Each search uses about 100 units of the free 10,000-unit daily quota.
 
 ## 🧠 How it works
 
+> The screenshots above predate the current interface and will be refreshed.
+
+**Demo and live never mix.** The Demo switch in the sidebar decides where numbers come from. In Demo mode everything is read from `src/demo/fixtures.ts` and labelled "Demo data". In live mode everything comes from YouTube; if something can't be fetched the page says why. It never falls back to demo numbers.
+
+**Every number is explainable.** Scores are plain arithmetic on values YouTube returned, each screen has a "how this is worked out" note, and anything YouTube doesn't publish (search volume, earnings, click-through rate) is not shown at all.
+
 ```
 src/
-  app/(app)/*        Pages: Feed, AI Coach, Optimize, Outliers, Research, Keywords, Competitors
-  app/api/*          JSON routes the pages and future clients can call
-  app/api/auth/*     Google sign-in, callback and sign-out
-  lib/data.ts        Data layer: live data when keys are set, demo data otherwise
-  lib/youtube.ts     YouTube Data API (public search)
-  lib/youtube-user.ts  Your own channel, uploads and 28-day analytics (OAuth)
-  lib/coach.ts       AI Coach: builds your channel context and streams Gemini answers
-  lib/session.ts     Encrypted, httpOnly cookie session (AES-GCM)
-  middleware.ts      Refreshes the Google access token before it expires
+  app/                  routes: (app)/feed, outliers, keywords, optimize, competitors, research, ai-coach, saved, settings; onboarding; api/
+  features/             one folder per feature: pure scoring (score.ts, build.ts, metrics.ts) + data layer (data.ts)
+    channel/            overview, history store, momentum, scheduled sync
+    discovery/          cached "topic scan" shared by Outliers, Keywords and the Feed
+    feed/ outliers/ keywords/ optimize/ competitors/ coach/ onboarding/
+  demo/                 demo fixtures and seed (the only made-up data in the repo)
+  lib/                  session + OAuth, YouTube client, db, cache, quota ledger, redacted logging, demo/live mode
+  components/ui/        design system: cards, badges, buttons, states, chart
+db/migrations/          plain SQL migrations, applied automatically on first run
+tests/                  Vitest: scoring, OAuth, API routes, demo/live switching, database
 ```
 
-| Page | Demo data | With keys |
-|---|---|---|
-| Feed | ✅ | Real subscribers, views and videos, with 28-day change |
-| AI Coach | Offline answers | Gemini answers grounded in your channel |
-| Optimize | ✅ | Your latest 20 uploads |
-| Outliers | ✅ | Live YouTube search, views ÷ channel average |
-| Channel research | ✅ | Live channel search |
-| Keywords | ✅ | Demo for now (see roadmap) |
-| Competitors | ✅ | Demo for now (see roadmap) |
+**Database.** SQLite through Node's built-in `node:sqlite` (Node 22.13+), so there is nothing to install or run. Tables: `users`, `channels`, `videos`, `channel_daily_snapshots`, `video_snapshots`, `keywords`, `competitors`, `saved_ideas`, `alerts`, `ai_conversations`, `ai_messages`, plus `api_cache`, `quota_usage` and `audit_log`. Google tokens are never stored there: they stay in the encrypted, httpOnly session cookie.
 
-**Privacy:** your Google tokens live only in an encrypted cookie in your browser. There's no database and nothing is stored on a server. The AI Coach sends your channel stats and video titles to Gemini to answer your question.
+**Quota.** A new search costs about 100 of the 10,000 daily YouTube units and is cached for 24 hours; opening your own channel costs about 3 and is cached for 15 minutes. TubeLens keeps its own usage estimate, warns at 80% and pauses new searches before the limit.
+
+**Commands**
+
+```bash
+npm install
+npm run dev          # http://localhost:3000 (starts in Demo mode with no keys)
+npm test             # scoring, OAuth, API routes, demo/live switching
+npm run db:migrate   # optional: migrations also run on first start
+npm run db:seed      # optional: load the demo fixtures into the database
+```
 
 ## 🗺 Roadmap
 
-- [ ] Real keyword search volume
-- [ ] Title and thumbnail scoring model
-- [ ] Daily feed cards generated for your channel
-- [ ] Database for history, saved ideas and credits
-- [ ] Automatic competitor matching
-- [ ] Larger video index for Outliers
+- Median-of-recent-uploads baseline for outlier scores (currently the channel's lifetime average)
+- Postgres or Turso adapter for serverless hosting (SQLite needs a persistent disk)
+- Background analytics sync with encrypted refresh tokens, for watch-time history between visits
+- Thumbnail analysis with a vision model, clearly labelled as AI opinion
+- Weekly email or WhatsApp summary of feed cards
 
 ## ❓ Questions
 

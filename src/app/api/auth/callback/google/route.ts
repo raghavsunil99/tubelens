@@ -1,13 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { appUrl, decodeIdToken, exchangeCode } from "@/lib/google-oauth";
+import { logEvent } from "@/lib/log";
+import { MODE_COOKIE } from "@/lib/mode";
 import {
   OAUTH_STATE_COOKIE,
   SESSION_COOKIE,
+  SESSION_MAX_AGE,
   sealSession,
   sessionCookieOptions,
   type Session,
 } from "@/lib/session";
-import { getMyChannel } from "@/lib/youtube-user";
+import { getPrefs } from "@/lib/viewer";
+import { getMyChannel } from "@/lib/youtube/client";
 
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
@@ -40,15 +44,32 @@ export async function GET(req: NextRequest) {
       refreshToken: tokens.refresh_token,
       expiresAt: Date.now() + tokens.expires_in * 1000,
       user: decodeIdToken(tokens.id_token),
-      channel: channel ? { id: channel.id, title: channel.title, thumbnail: channel.thumbnail } : null,
+      channel: channel ? { id: channel.id, title: channel.title, thumbnail: channel.thumbnail ?? undefined } : null,
     };
   } catch (err) {
-    console.error(err);
+    logEvent("error", "oauth.token_exchange_failed", err);
     return fail("token_exchange_failed");
   }
 
-  const res = NextResponse.redirect(`${appUrl()}/feed${session.channel ? "" : "?auth_error=no_channel"}`);
+  // First-time creators go through setup; returning ones land on their feed.
+  let next = "/feed?auth_error=no_channel";
+  if (session.channel) {
+    let onboarded = false;
+    try {
+      onboarded = Boolean(getPrefs(`ch:${session.channel.id}`).onboardedAt);
+    } catch (err) {
+      logEvent("warn", "oauth.prefs_lookup_failed", err);
+    }
+    next = onboarded ? "/feed" : "/onboarding?step=2";
+  }
+  logEvent("info", "oauth.connected", { hasChannel: Boolean(session.channel) });
+
+  const res = NextResponse.redirect(`${appUrl()}${next}`);
   res.cookies.set(SESSION_COOKIE, await sealSession(session), sessionCookieOptions);
   res.cookies.delete({ name: OAUTH_STATE_COOKIE, path: "/api/auth" });
+  // Connecting a channel means the creator wants their own data, not the demo.
+  if (session.channel) {
+    res.cookies.set(MODE_COOKIE, "live", { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: SESSION_MAX_AGE });
+  }
   return res;
 }
