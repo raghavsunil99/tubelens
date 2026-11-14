@@ -276,7 +276,10 @@ export function reviewVideo(v: Video, opts: { nicheTerms?: string[]; analytics?:
   };
 }
 
-/** How many checks failed, used to sort "fix these first". */
+/**
+ * How many title and description checks failed, used to sort "fix these first".
+ * Hook checks are left out: they are the most subjective and only understand English words.
+ */
 export function issueCount(r: VideoReview) {
-  return [...r.titleClarity.checks, ...r.description.checks, ...r.hook.checks].filter((c) => c.pass === false).length;
+  return [...r.titleClarity.checks, ...r.description.checks].filter((c) => c.pass === false).length;
 }

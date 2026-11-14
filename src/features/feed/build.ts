@@ -75,7 +75,7 @@ function bestVideo(i: FeedInput): FeedCard | null {
     kind: "best_video",
     label: "Your best recent video",
     title: `"${short(best.v.title)}" is doing ${x}× your usual`,
-    why: "When a video beats your normal numbers, the topic or packaging worked. A follow-up while it's still being watched is the cheapest win available.",
+    why: "When a video beats your normal numbers, the topic or packaging worked. A follow-up on the same idea is the cheapest win available.",
     evidence: [
       { label: "Views", value: compact(best.v.views) },
       { label: `Your typical ${kind}`, value: `${compact(best.typical)} (median of ${best.peers})` },
@@ -87,7 +87,7 @@ function bestVideo(i: FeedInput): FeedCard | null {
         ? `Compared with ${best.peers} of your other ${kind}s. Older videos have had longer to collect views, so the real gap may be larger.`
         : `Compared with only ${best.peers} other ${kind}s.`,
     action: { label: "Plan a follow-up", href: coach(`My video "${best.v.title}" is doing ${x}x my usual views. Suggest 3 follow-up videos.`) },
-    today: `Plan a follow-up to "${short(best.v.title, 48)}" while it's still pulling views.`,
+    today: `Plan a follow-up to "${short(best.v.title, 48)}", your strongest recent ${kind}.`,
   };
 }
 
@@ -196,7 +196,8 @@ function uploadTiming(i: FeedInput): FeedCard | null {
   const overall = median(i.uploads.map((v) => v.views));
   if (!overall) return null;
   const ranked = [...byDay.entries()]
-    .filter(([, views]) => views.length >= 2)
+    // Three uploads minimum, so one viral video can't crown a weekday on its own.
+    .filter(([, views]) => views.length >= 3)
     .map(([day, views]) => ({ day, n: views.length, med: median(views)! }))
     .sort((a, b) => b.med - a.med);
   const best = ranked[0];

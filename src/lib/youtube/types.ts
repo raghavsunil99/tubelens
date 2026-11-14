@@ -59,6 +59,21 @@ export interface VideoAnalytics {
   avgViewPercent: number;
 }
 
-/** Shorts can run up to 3 minutes, so duration is only a hint. 60s is the conservative cut. */
+/**
+ * YouTube's API doesn't say whether a video is a Short, and Shorts can run up
+ * to 3 minutes. A video counts as a Short here if it is 60 seconds or less, or
+ * up to 3 minutes and tagged #shorts by its creator.
+ */
 export const SHORT_MAX_SEC = 60;
-export const isShort = (v: { durationSec: number }) => v.durationSec > 0 && v.durationSec <= SHORT_MAX_SEC;
+export const SHORT_LIMIT_SEC = 180;
+
+export function isShort(v: { durationSec: number; title?: string; description?: string; tags?: string[] }) {
+  if (v.durationSec <= 0) return false;
+  if (v.durationSec <= SHORT_MAX_SEC) return true;
+  if (v.durationSec > SHORT_LIMIT_SEC) return false;
+  return /#shorts?\b/i.test(`${v.title ?? ""} ${v.description ?? ""}`) || (v.tags ?? []).some((t) => /^shorts?$/i.test(t.trim()));
+}
+
+/** 61 to 180 seconds with no #shorts tag: could be either format. */
+export const maybeShort = (v: { durationSec: number; title?: string; description?: string; tags?: string[] }) =>
+  !isShort(v) && v.durationSec > SHORT_MAX_SEC && v.durationSec <= SHORT_LIMIT_SEC;

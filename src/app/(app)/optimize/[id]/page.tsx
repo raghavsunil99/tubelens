@@ -4,7 +4,7 @@ import { BandBadge, Card, CheckList, LinkButton, PageHeader, ProblemState, Secti
 import { getReview } from "@/features/optimize/data";
 import { compact, duration, timeAgo } from "@/lib/format";
 import { getViewer } from "@/lib/viewer";
-import { isShort } from "@/lib/youtube/types";
+import { isShort, maybeShort } from "@/lib/youtube/types";
 
 export default async function VideoReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -33,7 +33,7 @@ export default async function VideoReviewPage({ params }: { params: Promise<{ id
           <div className="mb-2"><SourceBadge source={result.source} fetchedAt={result.fetchedAt} fromCache={result.fromCache} /></div>
           <h1 className="text-xl leading-snug font-semibold tracking-tight text-balance">{v.title}</h1>
           <p className="tabular mt-2 text-sm text-muted">
-            {compact(v.views)} views · {v.likes === null ? "likes hidden" : `${compact(v.likes)} likes`} · {v.comments === null ? "comments off" : `${compact(v.comments)} comments`} · {timeAgo(v.publishedAt)} · {isShort(v) ? "Short" : "Long-form"}
+            {compact(v.views)} views · {v.likes === null ? "likes hidden" : `${compact(v.likes)} likes`} · {v.comments === null ? "comments off" : `${compact(v.comments)} comments`} · {timeAgo(v.publishedAt)} · {isShort(v) ? "Short" : maybeShort(v) ? "Under 3 minutes (may be a Short)" : "Long-form"}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <LinkButton href={`/ai-coach?prompt=${encodeURIComponent(coachPrompt)}`} variant="primary" icon="arrow">Ask the Coach for better titles</LinkButton>
@@ -63,6 +63,7 @@ export default async function VideoReviewPage({ params }: { params: Promise<{ id
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between"><h2 className="text-sm font-semibold">Hook strength</h2><BandBadge band={r.hook.band} /></div>
           <CheckList checks={r.hook.checks} />
+          <p className="mt-4 text-xs leading-relaxed text-faint">These checks look for English words. For Telugu or Hindi written in English letters (Tenglish, Hinglish) they can miss a good hook, so treat a low result as a prompt to look, not a verdict.</p>
         </Card>
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between"><h2 className="text-sm font-semibold">Topic relevance</h2><BandBadge band={r.topicRelevance.band} /></div>
