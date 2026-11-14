@@ -130,7 +130,7 @@ function nicheCards(i: FeedInput): FeedCard[] {
   const cards: FeedCard[] = [];
 
   // Leave out the niche's own words (and their plurals): "phone" is not news in a "budget phones" scan.
-  const stem = (w: string) => w.replace(/(es|s)$/, "");
+  const stem = (w: string) => (w.length > 3 ? w.replace(/s$/, "") : w);
   const nicheWords = new Set(terms(i.niche).map(stem));
   const topics = topCounts(scored.flatMap((x) => [...new Set(terms(x.v.title))].filter((t) => !nicheWords.has(stem(t)) && t.length > 3 && !/^\d+$/.test(t))), 3);
   if (topics.length > 0) {
