@@ -53,7 +53,7 @@ Ask anything about growing your channel. The coach reads your **real subscribers
 <td width="50%" valign="top">
 
 ### ↗ Optimize
-Your recent uploads in one list with **title and thumbnail scores**, so you know which videos to fix first. Connect YouTube and it lists your real videos and views (scores for real videos are on the [roadmap](#-roadmap)).
+Your recent uploads with an **AI title score and a one-line fix** for each, so you know which videos to improve first. Connect YouTube to score your real titles with Gemini (free). It's an AI judgement of the title text, not a YouTube metric. Thumbnail scoring is on the [roadmap](#-roadmap).
 
 </td>
 <td width="50%" valign="top">
@@ -71,7 +71,7 @@ Find channels by niche, size and estimated earnings. Spot **faceless** and **pod
 <td width="50%" valign="top">
 
 ### # Keyword research
-Search volume, competition and 7-day trend for each keyword, rolled into one **overall score**: high volume and low competition score highest.
+Volume, competition and trend columns rolled into one **overall score**. ⚠️ These are **sample numbers**: YouTube has no public search-volume API, so real volume is on the [roadmap](#-roadmap).
 
 </td>
 <td width="50%" valign="top">
@@ -201,10 +201,10 @@ src/
 |---|---|---|
 | Feed | ✅ | Real subscribers, views and videos, with 28-day change |
 | AI Coach | Offline answers | Gemini answers grounded in your channel |
-| Optimize | ✅ | Your latest 20 uploads |
+| Optimize | ✅ | Your latest 20 uploads, with AI title scores and tips |
 | Outliers | ✅ | Live YouTube search, views ÷ channel average |
 | Channel research | ✅ | Live channel search |
-| Keywords | ✅ | Demo for now (see roadmap) |
+| Keywords | Sample numbers | Sample numbers (no real volume source yet) |
 | Competitors | ✅ | Demo for now (see roadmap) |
 
 **Privacy:** your Google tokens live only in an encrypted cookie in your browser. There's no database and nothing is stored on a server. The AI Coach sends your channel stats and video titles to Gemini to answer your question.
@@ -212,7 +212,8 @@ src/
 ## 🗺 Roadmap
 
 - [ ] Real keyword search volume
-- [ ] Title and thumbnail scoring model
+- [x] AI title scoring (Gemini)
+- [ ] Thumbnail scoring
 - [ ] Daily feed cards generated for your channel
 - [ ] Database for history, saved ideas and credits
 - [ ] Automatic competitor matching

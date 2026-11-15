@@ -4,7 +4,7 @@ import "server-only";
 // Gemini (free tier). Falls back to simple rule-based replies when
 // GEMINI_API_KEY isn't set, so the page still works without a key.
 import { FinishReason, GoogleGenAI, type Content } from "@google/genai";
-import { getChannelStats, getKeywordTrends, getOptimizeVideos, getOutliers } from "./data";
+import { getChannelStats, getOptimizeVideos, getOutliers } from "./data";
 import type { Session } from "./session";
 import type { ChatMessage } from "./types";
 
@@ -45,11 +45,12 @@ export function sanitizeHistory(raw: unknown): ChatMessage[] {
 
 /** Plain-text snapshot of everything the coach should know about this creator. */
 async function buildContext(session: Session | null) {
-  const [stats, uploads, outliers, keywords] = await Promise.all([
+  // Keyword volume is deliberately NOT included: there is no real source for it
+  // yet, and the coach must not present invented numbers as advice.
+  const [stats, uploads, outliers] = await Promise.all([
     getChannelStats(session),
     getOptimizeVideos(session),
     getOutliers({ minScore: 3 }),
-    getKeywordTrends(),
   ]);
   const s = stats.data;
   const lines: string[] = [];
@@ -73,12 +74,6 @@ async function buildContext(session: Session | null) {
     ...outliers.data
       .slice(0, 8)
       .map((o) => `- "${o.video_title}" by ${o.channel_title}: ${o.outlier_score}x average`),
-    "",
-    "KEYWORD OPPORTUNITIES (demo data; volume and competition are 0-100 scores):",
-    ...keywords
-      .sort((a, b) => b.overall - a.overall)
-      .slice(0, 8)
-      .map((k) => `- ${k.keyword}: overall ${k.overall}, volume ${k.volume}, competition ${k.competition}, 7-day change ${k.period_percent_change}%`),
   );
   return lines.join("\n");
 }
@@ -89,6 +84,8 @@ How to answer:
 - Ground every claim about the user's channel in the CHANNEL DATA below. Quote real numbers and real video titles. Never invent statistics or titles.
 - If the data says DEMO, tell the user these are sample numbers and suggest clicking "Connect YouTube" in the sidebar.
 - If the data can't answer the question (e.g. watch time, retention, CTR), say what's missing instead of guessing.
+- You have NO keyword search-volume or competition data. If asked about keywords or SEO, say so, and suggest ideas from the channel's own titles and the outlier videos instead. Never invent volumes, scores or trends.
+- Title and thumbnail scores in the app are AI estimates, not YouTube measurements.
 - Give specific, actionable steps: concrete title ideas, formats, upload timing, thumbnail tips.
 - Keep answers short: a few bullet points or a short list, under about 200 words unless asked for more.
 - Reply in the user's language and style. If they write Telugu in English letters (Tenglish), reply the same way.`;
@@ -163,12 +160,12 @@ async function ruleBasedReply(history: ChatMessage[], session: Session | null) {
     );
   }
   if (/keyword|seo|search/.test(last)) {
-    const kws = (await getKeywordTrends()).sort((a, b) => b.overall - a.overall).slice(0, 3);
     return (
-      "Best keyword opportunities this week (high volume, low competition):\n\n" +
-      kws.map((k) => `• ${k.keyword}: score ${k.overall}/100`).join("\n") +
+      "I don't have real keyword search-volume data yet, so I won't guess numbers. " +
+      "A good way to find topics: look at the Outliers page for formats that are working in your niche, " +
+      "and reuse the words from your best-performing titles." +
       note
     );
   }
-  return "I can audit your channel, suggest video ideas from current outliers, or find keyword opportunities. Which would help most?" + note;
+  return "I can audit your channel, suggest video ideas from current outliers, or suggest title improvements. Which would help most?" + note;
 }

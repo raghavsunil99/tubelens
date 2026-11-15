@@ -28,9 +28,9 @@ export default async function KeywordsPage({ searchParams }: { searchParams: SP 
     <div className="mx-auto max-w-5xl">
       <PageHeader
         title="Keyword research"
-        subtitle="Overall score rewards high search volume and low competition."
+        subtitle="Sample numbers only: YouTube has no public search-volume API, so these are not real."
       >
-        <span className="rounded-full border border-line px-2.5 py-1 text-xs text-muted">Demo data</span>
+        <span className="rounded-full border border-warn/40 px-2.5 py-1 text-xs text-warn">Sample data, not real volumes</span>
       </PageHeader>
       <div className="mb-6">
         <SearchForm action="/keywords" name="q" defaultValue={q} placeholder="Enter a keyword" />
