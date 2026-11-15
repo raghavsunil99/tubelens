@@ -2,6 +2,8 @@
 // Node and Edge runtimes, including middleware). Holds the user's Google
 // tokens and a small channel summary until a database exists.
 
+import { cookieSecure } from "./desktop";
+
 export const SESSION_COOKIE = "tl_session";
 export const OAUTH_STATE_COOKIE = "tl_oauth_state";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -64,7 +66,7 @@ export async function unsealSession(value: string | undefined): Promise<Session 
 
 export const sessionCookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: cookieSecure(),
   sameSite: "lax" as const,
   path: "/",
   maxAge: SESSION_MAX_AGE,

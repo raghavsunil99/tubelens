@@ -43,3 +43,6 @@ next-env.d.ts
 
 # local database
 /data/
+
+# desktop app build output
+/dist/

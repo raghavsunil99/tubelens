@@ -2,6 +2,7 @@ import { deleteMyData } from "@/app/actions";
 import { Badge, Button, Card, LinkButton, PageHeader, SectionTitle } from "@/components/ui";
 import { geminiEnabled } from "@/features/coach/coach";
 import { languageName } from "@/features/onboarding/options";
+import { desktopMode } from "@/lib/desktop";
 import { GOOGLE_SCOPES } from "@/lib/google-oauth";
 import { recentEvents } from "@/lib/log";
 import { quotaStatus } from "@/lib/quota";
@@ -34,7 +35,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: SP 
   const viewer = await getViewer();
   const quota = quotaStatus();
   // The log covers the whole server, so it is only shown on a local/dev install.
-  const showLog = process.env.NODE_ENV !== "production";
+  const showLog = process.env.NODE_ENV !== "production" || desktopMode();
   const events = showLog ? recentEvents(8) : [];
   const { session, prefs } = viewer;
 

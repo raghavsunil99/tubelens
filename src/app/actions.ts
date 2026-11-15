@@ -9,6 +9,7 @@ import { removeIdea, saveIdea, setCardState } from "@/features/feed/data";
 import { forgetKeyword } from "@/features/keywords/data";
 import { GOALS } from "@/features/onboarding/options";
 import { getDb } from "@/lib/db";
+import { cookieSecure } from "@/lib/desktop";
 import { logEvent } from "@/lib/log";
 import { MODE_COOKIE } from "@/lib/mode";
 import { SESSION_MAX_AGE } from "@/lib/session";
@@ -37,7 +38,7 @@ export async function setMode(form: FormData) {
   (await cookies()).set(MODE_COOKIE, mode, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     path: "/",
     maxAge: SESSION_MAX_AGE,
   });

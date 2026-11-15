@@ -10,7 +10,10 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "db:migrate": "vite-node -c vitest.config.ts scripts/migrate.ts",
-    "db:seed": "vite-node -c vitest.config.ts scripts/seed.ts"
+    "db:seed": "vite-node -c vitest.config.ts scripts/seed.ts",
+    "desktop:prepare": "next build && node scripts/prepare-desktop.mjs",
+    "desktop:dev": "npm run desktop:prepare && electron .",
+    "desktop:build": "npm run desktop:prepare && electron-builder --mac dmg --arm64 --publish never"
   },
   "dependencies": {
     "@google/genai": "^3.0.0",
@@ -25,6 +28,8 @@
     "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "tailwindcss": "^4",
@@ -33,5 +38,57 @@
   },
   "engines": {
     "node": ">=22.13"
+  },
+  "main": "electron/main.js",
+  "description": "TubeLens: a YouTube growth toolkit for creators",
+  "author": "Raghav",
+  "build": {
+    "appId": "com.raghav.tubelens",
+    "productName": "TubeLens",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": ".next/standalone",
+        "to": "server",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "identity": null,
+      "icon": "build/icon.png"
+    },
+    "dmg": {
+      "title": "TubeLens",
+      "contents": [
+        {
+          "x": 140,
+          "y": 190
+        },
+        {
+          "x": 400,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
   }
 }
