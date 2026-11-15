@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { refreshAccessToken } from "@/lib/google-oauth";
+import { cookieSecure } from "@/lib/desktop";
 import { ANON_COOKIE } from "@/lib/mode";
 import { redact } from "@/lib/redact";
 import { SESSION_COOKIE, SESSION_MAX_AGE, sealSession, sessionCookieOptions, unsealSession } from "@/lib/session";
@@ -50,7 +51,7 @@ export async function middleware(req: NextRequest) {
   if (newAnon) {
     res.cookies.set(ANON_COOKIE, newAnon, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: cookieSecure(),
       sameSite: "lax",
       path: "/",
       maxAge: SESSION_MAX_AGE * 12,

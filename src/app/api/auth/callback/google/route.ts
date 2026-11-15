@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { cookieSecure, DESKTOP_NONCE_COOKIE, desktopMode } from "@/lib/desktop";
+import { putHandoff, validNonce } from "@/lib/desktop-handoff";
 import { appUrl, decodeIdToken, exchangeCode } from "@/lib/google-oauth";
 import { logEvent } from "@/lib/log";
 import { MODE_COOKIE } from "@/lib/mode";
@@ -64,12 +66,25 @@ export async function GET(req: NextRequest) {
   }
   logEvent("info", "oauth.connected", { hasChannel: Boolean(session.channel) });
 
+  const sealed = await sealSession(session);
+
+  // Desktop app: this callback ran in the system browser. Park the session for
+  // the app to collect, and leave the browser with a "return to TubeLens" page.
+  const nonce = req.cookies.get(DESKTOP_NONCE_COOKIE)?.value;
+  if (desktopMode() && validNonce(nonce) && session.channel) {
+    putHandoff(nonce, sealed, next);
+    const done = NextResponse.redirect(`${appUrl()}/desktop-connected`);
+    done.cookies.delete({ name: OAUTH_STATE_COOKIE, path: "/api/auth" });
+    done.cookies.delete({ name: DESKTOP_NONCE_COOKIE, path: "/api/auth" });
+    return done;
+  }
+
   const res = NextResponse.redirect(`${appUrl()}${next}`);
-  res.cookies.set(SESSION_COOKIE, await sealSession(session), sessionCookieOptions);
+  res.cookies.set(SESSION_COOKIE, sealed, sessionCookieOptions);
   res.cookies.delete({ name: OAUTH_STATE_COOKIE, path: "/api/auth" });
   // Connecting a channel means the creator wants their own data, not the demo.
   if (session.channel) {
-    res.cookies.set(MODE_COOKIE, "live", { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: SESSION_MAX_AGE });
+    res.cookies.set(MODE_COOKIE, "live", { httpOnly: true, sameSite: "lax", secure: cookieSecure(), path: "/", maxAge: SESSION_MAX_AGE });
   }
   return res;
 }

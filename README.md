@@ -218,6 +218,20 @@ npm run db:migrate   # optional: migrations also run on first start
 npm run db:seed      # optional: load the demo fixtures into the database
 ```
 
+## 🖥 Desktop app (macOS)
+
+TubeLens also runs as a normal Mac app, using the same code in an Electron window.
+
+```bash
+npm run desktop:build     # creates dist/TubeLens-<version>-arm64.dmg
+npm run desktop:dev       # build and open it without making an installer
+```
+
+- **Settings live outside the app.** Keys go in `~/Library/Application Support/TubeLens/.env.local` (menu: TubeLens, Edit API Keys). The database and log are in the same folder. Nothing secret is ever packed into the `.dmg`.
+- **Google redirect address:** add `http://localhost:3111/api/auth/callback/google` to your OAuth client. The app always uses port 3111.
+- **Sign-in opens your normal browser**, because Google won't show its sign-in page inside an embedded window. The app collects the finished session through a one-time code and signs itself in.
+- The installer is **not code-signed**. On first open, right-click the app and choose Open (or allow it in System Settings, Privacy & Security).
+
 ## 🗺 Roadmap
 
 - Median-of-recent-uploads baseline for outlier scores (currently the channel's lifetime average)
